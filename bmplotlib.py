@@ -25,14 +25,7 @@ def plot_json(json_file, output_file, *args, **kwargs):
     time_unit = "[" + json_file["benchmarks"][0]["time_unit"] + "]"
     plt.ioff()
 
-    # PERR : parsing
-
-    # TODO : support more ext
-    if(kwargs.get("ext") is None):
-        logging.debug("ext bad parsed")
     ext = kwargs.get("ext", ".pdf")
-    if(kwargs.get("log") is None):
-        logging.debug("log bad parsed")
     log = kwargs.get("log", False)
 
     d = defaultdict(list)
