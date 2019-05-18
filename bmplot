@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+import logging
+from glob import glob
+
+from bmplotlib import *
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Plot output of Google benchmark (currently only support JSON)")
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1')
+    parser.add_argument('-log', action="store_true", help="Use logarithmic scale")
+    parser.add_argument('-r', action="store_true", help="Search through subfolders")
+
+    parser.add_argument('-f', nargs="+", type=PathType(exists=True, type="file", perm="r"), 
+                        help="Data files for plotting")
+    parser.add_argument('-d', nargs="*", type=PathType(exists=True, type="dir", perm="r"), 
+                        help="Directories with data files for plotting")
+    parser.add_argument('-o', nargs="?", type=PathType(exists=None, type="dir", perm="w"), default='.', 
+                        help="Directory for output plots, default='.'")
+    # TODO : plot extension
+
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG,
+                        format="%(levelname)s: %(message)s")
+
+    if args.d:
+        all_paths = args.f + args.d
+    else:
+        all_paths = args.f
+
+    full_paths = [os.path.join(os.getcwd(), path) for path in all_paths]
+    supported_formats = [".json"]
+    files = set()
+
+    for path in full_paths:
+        if os.path.isfile(path):
+            fileName, fileExt = os.path.splitext(path)
+            if fileExt not in supported_formats:
+                logging.info("{} skipped".format(fileName + fileExt))
+            else:
+                files.add(path)
+        else:
+            if args.r:
+                full_paths += glob(path + '/*')
+
+    if not os.path.isdir(args.o):
+        os.mkdir(args.o)
+
+    logging.debug("Dir type: {}".format(type(args.o)))
+
+    for file in files:
+        logging.debug("processing file {}".format(file))
+        with open(file, "r") as f:
+            logging.debug("file type: {}".format(type(f)))
+            plot(f, args.o, ext="pdf", log=args.log)
+
+    # if args.r:
+    #     for directory in os.listdir(args.data_directory):
+    #         for file in os.listdir(args.data_directory+"/"+directory):
+    #             file_name, file_ext = os.path.splitext(file)
+    #             if file_ext != ".json":
+    #                 break
+    #             path = args.data_directory+"/"+directory+"/"+file
+    #             with open(path, "r") as json_file:
+    #                 plot_json(json.load(json_file), args.o + "/" + directory + "/" + file_name + ".pdf")
+    # else:
+    #     pass    # TODO : when no -r option
