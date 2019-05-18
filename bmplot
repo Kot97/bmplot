@@ -50,13 +50,9 @@ if __name__ == "__main__":
     if not os.path.isdir(args.o):
         os.mkdir(args.o)
 
-    logging.debug("Dir type: {}".format(type(args.o)))
-
     for file in files:
         logging.debug("processing file {}".format(file))
-        with open(file, "r") as f:
-            logging.debug("file type: {}".format(type(f)))
-            plot(f, args.o, ext="pdf", log=args.log)
+        plot(file, args.o, ext="pdf", log=args.log)
 
     # if args.r:
     #     for directory in os.listdir(args.data_directory):

@@ -11,18 +11,21 @@ import numpy as np
 # TODO : requirements for output of Google benchmark
 # TODO : documentation!
 
-def plot(file, output_dir, *args : list, **kwargs : dict):
+def plot(file : str, output_dir, *args, **kwargs):
     file_name, file_ext = os.path.splitext(file)
-    if file_ext is ".json":
-        logging.debug("Start plotting {}".format(file))
-        plot_json(json.load(file), output_dir + file_name, args, kwargs)
-    # TODO : plot_xml
+    with open(file, "r") as f:
+        if file_ext == ".json":
+            logging.debug("Start plotting {}".format(file))
+            plot_json(json.load(f), output_dir + file_name.split("/")[-1], *args, **kwargs)
+        # TODO : plot_xml
 
 
-def plot_json(json_file, output_file, *args : list, **kwargs : dict):
+def plot_json(json_file, output_file, *args, **kwargs):
     plot_title = (str(json_file["context"]["executable"]).split(".")[1][1:])    # TODO : customize title pattern
     time_unit = "[" + json_file["benchmarks"][0]["time_unit"] + "]"
     plt.ioff()
+
+    # PERR : parsing
 
     # TODO : support more ext
     if(kwargs.get("ext") is None):
