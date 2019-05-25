@@ -10,9 +10,6 @@ from bmplotlib import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot output of Google benchmark (currently only support JSON)")
-    parser.add_argument('--version', action='version', version='%(prog)s 0.1')
-    parser.add_argument('-log', action="store_true", help="Use logarithmic scale")
-    parser.add_argument('-r', action="store_true", help="Search through subfolders")
 
     parser.add_argument('-f', nargs="+", type=PathType(exists=True, type="file", perm="r"), 
                         help="Data files for plotting")
@@ -20,6 +17,16 @@ if __name__ == "__main__":
                         help="Directories with data files for plotting")
     parser.add_argument('-o', nargs="?", type=PathType(exists=None, type="dir", perm="w"), default='.', 
                         help="Directory for output plots, default='.'")
+
+    parser.add_argument('-log', action="store_true", help="Use logarithmic scale")
+    parser.add_argument('-r', action="store_true", help="Search through subfolders")
+    
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1')
+    parser.add_argument('--select', nargs="+", type=str, 
+                        help="Name of benchmarks from many files which you want on one plot")
+    #TODO : regular expression on select
+    parser.add_argument('--title', nargs="?", type=str, help="Plot title")
+    parser.add_argument('--unit', nargs="?", type=str, help="Time unit")
     # TODO : plot extension
 
     args = parser.parse_args()
@@ -49,9 +56,12 @@ if __name__ == "__main__":
     if not os.path.isdir(args.o):
         os.mkdir(args.o)
 
-    for file in files:
-        logging.debug("processing file {}".format(file))
-        plot(file, args.o, ext="pdf", log=args.log)
+    if args.select is not None:
+        select_plot(files, args.select, args.o, ext="pdf", log=args.log, title=args.title, unit=args.unit)
+    else:
+        for file in files:
+            logging.debug("processing file {}".format(file))
+            plot(file, args.o, ext="pdf", log=args.log, title=args.title, unit=args.unit)
 
     # if args.r:
     #     for directory in os.listdir(args.data_directory):

@@ -9,20 +9,52 @@ from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
 # TODO : requirements for output of Google benchmark
+# names of benchmarks in data files must starts with BM_ and on select list they cant start with BM_
+
 # TODO : documentation!
 
+def clear_none(**kwargs):
+    if kwargs.get("title") is None :
+        kwargs.pop("title")
+    if kwargs.get("unit") is None :
+        kwargs.pop("unit")
+    return kwargs
+
 def plot(file : str, output_dir, *args, **kwargs):
+    kwargs = clear_none(**kwargs)
     file_name, file_ext = os.path.splitext(file)
     with open(file, "r") as f:
         if file_ext == ".json":
             logging.debug("Start plotting {}".format(file))
-            plot_json(json.load(f), output_dir + file_name.split("/")[-1], *args, **kwargs)
+            plot_json(json.load(f), output_dir + "/" + file_name.split("/")[-1], *args, **kwargs)
         # TODO : plot_xml
+
+def select_plot(files : set, select : list, output_dir, *args, **kwargs):
+    kwargs = clear_none(**kwargs)
+    data_json = dict()
+    d = list()
+    for file in files:
+        _, file_ext = os.path.splitext(file)
+        with open(file, "r") as f:
+            if file_ext == ".json":
+                logging.debug("Start analizing {}".format(file))
+                f_json = json.load(f)
+                context = f_json["context"]        # context in last file is copied
+                for i in f_json["benchmarks"]:
+                    title = i["name"].split("/")[0][3:]
+                    if title in select:
+                        logging.debug("Add benchmark {}".format(title))
+                        d.append(i)
+            # TODO : plot_xml
+    data_json["benchmarks"] = d
+    data_json["context"] = context
+    plot_title = kwargs.get("title", "selected_plot")
+    plot_json(data_json, output_dir + "/" + plot_title, *args, **kwargs)
 
 
 def plot_json(json_file, output_file, *args, **kwargs):
-    plot_title = (str(json_file["context"]["executable"]).split(".")[1][1:])    # TODO : customize title pattern
-    time_unit = "[" + json_file["benchmarks"][0]["time_unit"] + "]"
+    plot_title = kwargs.get("title", (str(json_file["context"]["executable"]).split(".")[1][1:]))
+    time_unit = "[" + kwargs.get("unit", json_file["benchmarks"][0]["time_unit"]) + "]"
     plt.ioff()
 
     ext = kwargs.get("ext", ".pdf")
@@ -49,7 +81,7 @@ def plot_json(json_file, output_file, *args, **kwargs):
 
     def _set(ax):
         if log:
-            ax.set(xlabel="size", xscale="log", ylabel="time " + time_unit)
+            ax.set(xlabel="size", xscale="log", yscale="log", ylabel="time " + time_unit)
         else:
             ax.set(xlabel="size", ylabel="time " + time_unit)
 
@@ -131,4 +163,4 @@ class PathType(object):
                 raise argparse.ArgumentTypeError("you don't have read and write permissions")
 
         return string
-
+    
