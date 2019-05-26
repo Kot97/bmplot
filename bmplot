@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', nargs="+", type=PathType(exists=True, type="file", perm="r"), 
                         help="Data files for plotting")
     parser.add_argument('-d', nargs="*", type=PathType(exists=True, type="dir", perm="r"), 
-                        help="Directories with data files for plotting")
+                        help="Directories with data files for plotting")            # ERR : this dont work now
     parser.add_argument('-o', nargs="?", type=PathType(exists=None, type="dir", perm="w"), default='.', 
                         help="Directory for output plots, default='.'")
 
@@ -31,10 +31,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 
     if args.d:
-        all_paths = args.f + args.d
+        if args.f:
+            all_paths = args.f + args.d
+        else:
+            all_paths = args.d
     else:
         all_paths = args.f
 
@@ -52,6 +55,8 @@ if __name__ == "__main__":
         else:
             if args.r:
                 full_paths += glob(path + '/*')
+
+    logging.debug("Files found {}".format(files))
 
     if not os.path.isdir(args.o):
         os.mkdir(args.o)

@@ -1,4 +1,5 @@
 import os
+import re
 import argparse
 import json
 import logging
@@ -42,9 +43,11 @@ def select_plot(files : set, select : list, output_dir, *args, **kwargs):
                 context = f_json["context"]        # context in last file is copied
                 for i in f_json["benchmarks"]:
                     title = i["name"].split("/")[0][3:]
-                    if title in select:
-                        logging.debug("Add benchmark {}".format(title))
-                        d.append(i)
+                    for reg in select:
+                        if re.search(reg, title):
+                            logging.debug("Add benchmark {}".format(title))
+                            d.append(i)
+                            break
             # TODO : plot_xml
     data_json["benchmarks"] = d
     data_json["context"] = context
